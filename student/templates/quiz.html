@@ -9,87 +9,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='vendors/mdi/css/materialdesignicons.min.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='vendors/css/vendor.bundle.base.css')}}">
     <link rel="stylesheet" href="/static/css/style.css">
-    <style type="text/css">
-      .form-control{
-        font-size: 1.000rem;
-      }
-      .form-group label{
-       font-size: 1.0125rem; 
-      }
-      .btn2 {
-        background-color: DodgerBlue;
-        border: none;
-        color: white;
-        padding: 12px 16px;
-        font-size: 16px;
-        cursor: pointer;
-        margin: 2%;
-      }
-      .check {
-        -webkit-touch-callout: none; /*iOS Safari*/
-        -webkit-user-select: none; /*Chrome/Safari/Opera*/
-        -khtml-user-select: none; /*Konqueror*/
-        -moz-user-select: none; /*Firefox*/
-        -ms-user-select: none; /*Internet Explorer/Edge*/
-        user-select: none;/* Non-prefixed version, currently
-        not supported by any browser*/
-      }
-      #progressBar {
-        width: 100%;
-        margin: 0.625rem auto;
-        height: 1.975rem;
-        background-color: #19547b;
-        color: black;
-        font-size: 1.125rem;
-        font-weight: 400;
-      }
-
-      #progressBar div {
-        height: 100%;
-        text-align: right;
-        padding: 0.125rem 0.625rem;
-        line-height: 1.975rem; /* same as #progressBar height if we want text middle aligned */
-        width: 0;
-        background-color: #fdbf43;
-        box-sizing: border-box;
-      }
-
-      #left {
-        float: left;
-      }
-      #right {
-        float:right;
-      }
-      .instruction_list {
-        font-size: 1.5rem;
-      } 
-
-      @media(max-width:768px){
-        .page-header{
-          margin-bottom: 0px!important;
-        }
-        .card-body{
-          padding-top: 0px!important;
-        }
-        .navbar {
-          display: none!important;
-        }
-        .page-body-wrapper{
-          padding-top: 0px!important;
-          height:100vh;
-        }
-        .content-wrapper{
-          padding-bottom: 0px;
-          padding-top: 10px;
-        }
-        .grid-margin{
-          margin-bottom: 10px!important;
-        }
-        #question_desc{
-          overflow-y: scroll!important;
-        }
-      }
-
+      body { background-color: #f0f2f5; font-family: 'Outfit', sans-serif; }
+      .main-panel { background: #f0f2f5; }
+      .card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+      #time_card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white!important; border: none!important; }
+      #time_card h4, #time_card p { color: white!important; }
+      .btn-gradient-primary { background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%); border: none; border-radius: 10px; padding: 12px 25px; font-weight: 600; }
+      .btn-gradient-success { background: linear-gradient(45deg, #11998e 0%, #38ef7d 100%); border: none; border-radius: 10px; padding: 12px 25px; font-weight: 600; }
     </style>
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.ico')}}" />
     <link href="{{ url_for('static', filename='css/loader.css')}}" rel="stylesheet" />
@@ -306,17 +232,10 @@
           // If the count down is finished, write some text
           else if (distance < 0) {
             clearInterval(x);
-            var blink_speed = 500;
-            setInterval(() => {
-              document.getElementById("demo").style.visibility = (document.getElementById("demo").style.visibility == 'hidden' ? '' : 'hidden')
-            }, blink_speed); 
-            document.getElementById("time_card").style = "border:1px solid #a12023!important";
-            document.getElementById("demo").innerHTML = "<span>Quiz Time Finished!</span><br><span>Hurry Before Faculty stop the quiz.</span>";
-            document.getElementById("demo").style= "color:#a12023";
-            // var base_url = window.location.origin;
-            // redirect_url = base_url+'/student/quiz_finish/';
-            
-            // window.location.replace(redirect_url); 
+            document.getElementById("demo").innerHTML = "EXPIRED";
+            setTimeout(function() {
+                window.location.replace('/student/quiz_finish/');
+            }, 1000);
           }
         }, 1000);
 
@@ -365,22 +284,22 @@
 
       function next_ques(){
             /*if($("#one_line").length == 0) {
-                $('#answer').prop('required',false);
+                $('#answer').prop('',false);
               }
               else if($("#options").length == 0)
               {
-                $('[name="option_select"]').prop('required',false);
+                $('[name="option_select"]').prop('',false);
               }*/
             transfer_data('next',"POST")
           }
 
           function prev_ques(){
             /*if($("#one_line").length == 0) {
-              $('#answer').prop('required',false);
+              $('#answer').prop('',false);
             }
             else if($("#options").length == 0)
             {
-              $('[name="option_select"]').prop('required',false);
+              $('[name="option_select"]').prop('',false);
             }*/
             transfer_data('prev',"POST")
           }
@@ -394,25 +313,23 @@
             let desc_flag = 0
 
             $form.find(':input').each((index,elem) => {
-
                 elem_name = $(elem).attr("name")
+                if (!elem_name) return true; // continue
 
                 if (elem_name == 'desc_ans'){
-                  desc_flag = 0 // Treat as normal form field now
+                  desc_flag = 0 
                   elem_val = $(elem).val()
                   dict[elem_name] = elem_val
                   arr.append(elem_name,elem_val)
                 }
                 else if(elem_name === 'option_select'){
-                  dict[elem_name] = $("input[name='option_select']:checked","#upload_form").val()                  
-                  return false
+                  dict[elem_name] = $("input[name='option_select']:checked","#upload_form").val() || ""
                 }
               else{
                 elem_val = $(elem).val()
                 dict[elem_name] = elem_val
                 arr.append(elem_name,elem_val)
               }
-
             })
             if(desc_flag === 1){
               arr.append('ques_no',$("#q_no").attr("name"))
@@ -533,7 +450,7 @@
                           options += (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" checked>`)
                         }
                         else{
-                          options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" required="required">`)
+                          options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" >`)
                         }
                       }
                       else if(response.questions.submitted_answer){
@@ -542,15 +459,15 @@
                           options += (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" checked>`)
                         }
                         else{
-                         options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" required="required">`)
+                         options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" >`)
                         }
                       }
                       else{
-                        options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" required="required">`)
+                        options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" >`)
                       }
                     }
                     else{
-                      options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" required="required">`)
+                      options+= (`<input type="radio" class="form-check-input" name="option_select" value="${i}" id="optionRadios${i}" >`)
                     }
 
                     switch(i){
@@ -588,17 +505,17 @@
                   one_line += `<label for="exampleInputUsername1">Answer</label>`
                   if (response.attempted==1 || response.questions.submitted==1){
                     if (response.questions.session_answer && response.questions.session_answer !=''){
-                      one_line += (`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required>${response.questions.session_answer}</textarea>`)
+                      one_line += (`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" >${response.questions.session_answer}</textarea>`)
                     }
                     else if (response.questions.submitted_answer){
-                      one_line +=(`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required>${response.questions.submitted_answer}</textarea>`)
+                      one_line +=(`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" >${response.questions.submitted_answer}</textarea>`)
                     }
                     else{
-                      one_line += (`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required></textarea>`)
+                      one_line += (`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" ></textarea>`)
                     }
                   }
                   else{
-                      one_line += (`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required></textarea>`)
+                      one_line += (`<textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" ></textarea>`)
                   }
                   
                   $("#one_line").append(one_line)
@@ -780,22 +697,22 @@
                                                 {% if opt_select == j %}
                                                 <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" checked>
                                                 {% else %}
-                                                <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" required="required">
+                                                <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" >
                                                 {% endif %}
                                               {% elif questions.submitted_answer %}
                                                 {% set opt_select = questions.submitted_answer[-1] | int %}  
                                                 {% if opt_select == j %}
                                                 <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" checked>
                                                 {% else %}
-                                                <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" required="required">
+                                                <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" >
                                                 {% endif %}
                                               {% else %}
                                                 <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" 
-                                              required="required">
+                                              >
                                               {% endif %}
                                             {% else %}
                                               <input type="radio" class="form-check-input" name="option_select" value="{{j}}" id="optionRadios{{j}}" 
-                                              required="required">
+                                              >
                                             {% endif %}
                                             {% if j == 1 %}
                                               {{questions.opt1}}
@@ -827,14 +744,14 @@
                                           <label for="exampleInputUsername1">Answer</label>
                                           {% if attempted==1 or questions.submitted==1 %}
                                             {% if questions.session_answer and questions.session_answer !=''  %}
-                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required>{{questions.session_answer}}</textarea>
+                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2">{{questions.session_answer}}</textarea>
                                             {% elif questions.submitted_answer %}
-                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required>{{questions.submitted_answer}}</textarea>
+                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2">{{questions.submitted_answer}}</textarea>
                                             {% else %}
-                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required></textarea>
+                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" ></textarea>
                                             {% endif %}
                                           {% else %}
-                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" required></textarea>
+                                            <textarea class="one form-control" name="one_line_ans" id="answer" placeholder="Write Answer Here....." rows="2" ></textarea>
                                           {% endif %}
 
                                         {% endif %}
@@ -846,7 +763,7 @@
                                   <div id='desc'>
                                   {% if questions.ans_type==2%}
                                     <label><b>Enter your Answer:</b></label>
-                                    <textarea class="form-control" name="desc_ans" id="desc_answer" placeholder="Type your answer here..." rows="10" required>{{questions.submitted_answer if questions.submitted_answer else questions.session_answer}}</textarea>
+                                    <textarea class="form-control" name="desc_ans" id="desc_answer" placeholder="Type your answer here..." rows="10">{{questions.submitted_answer if questions.submitted_answer else questions.session_answer}}</textarea>
                                   {% endif %}
                                   </div>
                                 </div>

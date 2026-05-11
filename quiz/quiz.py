@@ -769,7 +769,7 @@ def response():
             # print(quiz_responses)
             cursor.close()
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('SELECT username,roll,stud_img,user_score,total_points,total_time_taken FROM score WHERE quiz_id =%s ORDER BY cast(user_score as unsigned) DESC,total_time_taken ASC LIMIT 5', [session['quiz_id']])
+            cursor.execute('SELECT username,roll,stud_img,user_score,total_points,total_time_taken FROM score WHERE quiz_id =%s ORDER BY CAST(user_score AS INTEGER) DESC,total_time_taken ASC LIMIT 5', [session['quiz_id']])
             records = cursor.fetchall()
             cursor.close()
             rankers = list()

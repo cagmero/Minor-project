@@ -50,70 +50,24 @@
     });
     </script>
     <style>
-        #barChart{
-            padding: 4px;
-            margin-bottom: 50px;
-            border-radius: 5px;
-            background-image: url("{{ url_for('static', filename='images/dashboard/circle.svg')}}");
-            background-size: cover;
-            padding: 30px;
-
-        }
-
-        .barChartWrap{
-            /* width: 700px;
-            height: 350px; */
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-
-            width: auto;
-            position: relative;
-            overflow-x: auto;
-            overflow-y: hidden;
-        }
-        .barChartWrapArea {
-            width: 800px;
-            height: 350px;
-        }
-
-        #spiralChart{
-            margin-left: 40px;
-            height: 350px!important;
-            width: 400px!important;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-            border-radius: 5px;
-            padding: 30px;
-            background-image: url("{{ url_for('static', filename='images/dashboard/circle.svg')}}");
-        }
-        
-        .spiralChartWrap{
-            width: 400px;
-            height: 350px;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .bg-gradient-primary2 { background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%); }
+        .bg-gradient-success { background: linear-gradient(45deg, #11998e 0%, #38ef7d 100%); }
+        .bg-gradient-info { background: linear-gradient(45deg, #1cb5e0 0%, #000851 100%); }
+        .bg-gradient-warning { background: linear-gradient(45deg, #f09819 0%, #edde5d 100%); }
+        .bg-gradient-danger { background: linear-gradient(45deg, #eb3349 0%, #f45c43 100%); }
+        .scoreboard-card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; }
+        .scoreboard-table th { background: #f8f9fa; border: none; color: #666; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        .scoreboard-table td { vertical-align: middle; padding: 15px 10px; border-top: 1px solid #f1f1f1; }
+        .score-badge { padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+        .score-high { background: #e8f5e9; color: #2e7d32; }
+        .score-mid { background: #fff3e0; color: #ef6c00; }
+        .score-low { background: #ffebee; color: #c62828; }
         @media (max-width:768px){
-            #spiralChart{
-                width: 85vw!important;
-                margin:auto;
-                margin-top: 30px;
-                margin-bottom: 30px;
-            } 
-            .barChartWrap{
-                width: 85vw!important;
-                margin: auto;
-            }
-            .stretch-card{
-                margin-top: 50px;
-                width: 85vw!important;
-                padding: 0px;
-            }
-            .stretch-row{
-                margin-left: 0px!important;
-                margin-right: 0px!important;
-                width: 100vw!important;
-            }
+            .stretch-card { width: 100%!important; }
         }
-
-
     </style>
 </head>
 
@@ -143,15 +97,50 @@
                             </ul>
                         </nav>
                     </div>
-                    {% if chartData %}
-                    <div class="row" style="display:flex;margin-bottom: 30px;margin-left: 0px;" >
-                        <div class="barChartWrap">
-                            <div class="barChartWrapArea">
-                                <canvas id="barChart" data-name="{{chartData}}" width="500" height="350"></canvas>
+                    {% if mode == 'Student' %}
+                    <div class="row">
+                        <div class="col-12 grid-margin">
+                            <div class="scoreboard-card">
+                                <h4 class="mb-4">My Performance Scoreboard</h4>
+                                {% if user_scores %}
+                                <div class="table-responsive">
+                                    <table class="table scoreboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Quiz Title</th>
+                                                <th>Score</th>
+                                                <th>Result</th>
+                                                <th>Attempted On</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for score in user_scores %}
+                                            <tr>
+                                                <td class="font-weight-bold">{{ score.q_title }}</td>
+                                                <td>
+                                                    <span class="score-badge {% if score.total_points >= 80 %}score-high{% elif score.total_points >= 50 %}score-mid{% else %}score-low{% endif %}">
+                                                        {{ score.total_points }} / {{ score.out_of }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if score.quiz_attempted == 1 %}
+                                                        <span class="text-success"><i class="mdi mdi-check-circle"></i> Submitted</span>
+                                                    {% else %}
+                                                        <span class="text-warning"><i class="mdi mdi-clock"></i> Pending Correction</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ score.q_date if score.q_date else 'N/A' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <p class="text-muted">No quiz results available yet. Start a quiz to see your scores here!</p>
+                                </div>
+                                {% endif %}
                             </div>
-                        </div>
-                        <div class="spiralChartWrap">
-                        <canvas id="spiralChart" data-name="{{chartData}}" width="400" height="350"></canvas>
                         </div>
                     </div>
                     {% endif %}

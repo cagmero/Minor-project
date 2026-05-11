@@ -612,19 +612,14 @@ def dashboard():
         scores = list(cursor.fetchall())    
         cursor.execute('SELECT AVG(s.total_points) as avg_score,qd.q_sub FROM score s,quiz_det qd WHERE s.quiz_id = qd.quiz_id and user = %s group by qd.q_sub;',[svv])
         subject_scores = list(cursor.fetchall())          
-        user_scores = []
-        quiz_ids = set()
-        if len(scores)  > 0:
-            for i in scores:
-                if i['user'] == svv:
-                      user_scores.append(i) 
-                      quiz_ids.add(i['quiz_id'])
-        quiz_ids = list(quiz_ids)
-        filtered_scores = list(filter(lambda x : x["quiz_id"] in quiz_ids, scores ))
-        chartData =dict({"scores":filtered_scores,"user_scores":user_scores,"quiz_ids":quiz_ids,"svv":svv,"subject_scores":subject_scores})
-        chartData_json = json.dumps(chartData)
-        print("------------------------------")
-        print("chartData," ,(chartData['user_scores']))
+        # Filter scores for the current student
+        user_scores = [s for s in scores if s['user'] == svv]
+        # Sort scores by quiz date/id
+        user_scores.sort(key=lambda x: x['quiz_id'], reverse=True)
+        
+        # We'll pass user_scores directly to the template for the Score Board
+        chartData_json = json.dumps({"user_scores": user_scores})
+        print("Scores for Student:", user_scores)
 
         cursor.execute('SELECT quiz_type,quiz_id,q_title,q_sub,q_date,q_time_start,q_time_end,quiz_started FROM quiz_det WHERE q_date >= %s AND q_dept = %s AND q_sem = %s AND q_batch="All" OR  q_batch=%s ORDER BY quiz_id DESC', (dt,dept,sem,batch))
         records = cursor.fetchall()
@@ -706,9 +701,10 @@ def dashboard():
     # else:
     colors = ['bg-gradient-primary2','bg-gradient-success','bg-gradient-info','bg-gradient-warning','bg-gradient-danger','bg-gradient-dark']
     msg = {}
+    user_scores = user_scores if mode=="Student" else []
     if mode=="Admin":
         msg = check_message()
-        return render_template('index.html', message=msg, quizes = qs,total_q = len(qs),color=colors,mode = mode)
+        return render_template('index.html', message=msg, quizes = qs,total_q = len(qs),color=colors,mode = mode, user_scores=user_scores)
     elif mode=="Faculty":
         msg = check_message()
         if session.get('overtime') is not None:
@@ -716,15 +712,15 @@ def dashboard():
             msg['title'] = "You Can Edit the Quiz only before Quiz start Time!"
             msg['mode'] = 0
             msg['there'] = 1
-            return render_template('index.html', message=msg, quizes = qs,total_q = len(records),color=colors,mode = mode)
+            return render_template('index.html', message=msg, quizes = qs,total_q = len(records),color=colors,mode = mode, user_scores=user_scores)
     elif mode=="Student":
         if session.get('over_access') is not None:
             session.pop('over_access',None)
             msg['title'] = "Student Can't Access this Page, only accessible by Faculty!"
             msg['mode'] = 0
             msg['there'] = 1
-            return render_template('index.html', message=msg, quizes = qs,total_q = len(records),color=colors,mode = mode,chartData = chartData_json)
-    return render_template('index.html', message=msg, quizes = qs,total_q = len(records),color=colors,mode = mode,chartData = chartData_json)
+            return render_template('index.html', message=msg, quizes = qs,total_q = len(records),color=colors,mode = mode,chartData = chartData_json, user_scores=user_scores)
+    return render_template('index.html', message=msg, quizes = qs,total_q = len(records),color=colors,mode = mode,chartData = chartData_json, user_scores=user_scores)
 
 
 @app.route('/profile/')
@@ -775,10 +771,10 @@ def show_profile():
             info = s_info
         elif mode=="Admin":
             a_info['Name'] = account['F_name'] +" "+ account['M_name'] + " " + account['L_name']
-            a_info['num'] = account['A_num']
+            a_info['num'] = account.get('A_num', 'N/A')
             a_info['dept'] = account['dept']
-            a_info['gender'] = account['A_gender']
-            a_info['img'] = account['img']
+            a_info['gender'] = account.get('A_gender', 'N/A')
+            a_info['img'] = account.get('img', '')
             info = a_info
     else:
         msg['title'] = "Error while fetching data"

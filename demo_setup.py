@@ -17,54 +17,12 @@ def setup_demo_data():
     cursor = conn.cursor()
 
     # 1. Ensure Tables and Columns exist
-    # Admin
     ensure_column(cursor, 'admin', 'first_login', 'INTEGER DEFAULT 0')
-    ensure_column(cursor, 'admin', 'otp', 'TEXT')
-    ensure_column(cursor, 'admin', 'expiry_at', 'TEXT')
-    ensure_column(cursor, 'admin', 'otp_used', 'INTEGER DEFAULT 0')
-
-    # Student
     ensure_column(cursor, 'student', 'first_login', 'INTEGER DEFAULT 0')
     ensure_column(cursor, 'student', 'electives', 'TEXT')
-    ensure_column(cursor, 'student', 'otp', 'TEXT')
-    ensure_column(cursor, 'student', 'expiry_at', 'TEXT')
-    ensure_column(cursor, 'student', 'otp_used', 'INTEGER DEFAULT 0')
-
-    # Faculty
     ensure_column(cursor, 'faculty', 'first_login', 'INTEGER DEFAULT 0')
-    ensure_column(cursor, 'faculty', 'otp', 'TEXT')
-    ensure_column(cursor, 'faculty', 'expiry_at', 'TEXT')
-    ensure_column(cursor, 'faculty', 'otp_used', 'INTEGER DEFAULT 0')
 
-    # Subject Table - Ensure correct columns
-    try:
-        cursor.execute("SELECT course_code FROM subject LIMIT 1")
-    except sqlite3.OperationalError:
-        print("Re-creating subject table...")
-        cursor.execute("DROP TABLE IF EXISTS subject")
-        cursor.execute("""
-        CREATE TABLE `subject` (
-          `course_code` varchar(20) PRIMARY KEY,
-          `sub_name_long` text NOT NULL,
-          `sub_name_short` varchar(30) NOT NULL,
-          `sem` varchar(5) NOT NULL,
-          `sub_type` int NOT NULL,
-          `is_elective` int NOT NULL DEFAULT '0',
-          `elective_of` int NOT NULL DEFAULT '1',
-          `marks` int NOT NULL,
-          `dept_id` varchar(20) NOT NULL
-        )""")
-
-    # Electives Category
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS `electives_category` (
-      `category_id` INTEGER PRIMARY KEY AUTOINCREMENT,
-      `cat_name` TEXT NOT NULL,
-      `sem` TEXT NOT NULL,
-      `dept_id` TEXT NOT NULL
-    )""")
-
-    # 2. Update Credentials and Profile Info
+    # 2. Update Credentials
     hashed_pwd = generate_password_hash('12345678')
 
     # Update Admin
@@ -117,7 +75,7 @@ def setup_demo_data():
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, subjects)
 
-    # 4. Create two Demo Quizzes
+    # 4. Create Demo Quizzes (MCQ, Mixed, Descriptive)
     cursor.execute("DELETE FROM quiz_det")
     cursor.execute("DELETE FROM questions")
     cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_det'")
@@ -127,33 +85,54 @@ def setup_demo_data():
     start_time = "00:00"
     end_time = "23:59"
     
-    # Quiz 1: MCQ (quiz_type='0')
+    # Quiz 1: Pure MCQ (quiz_type='0')
     cursor.execute("""
         INSERT INTO quiz_det (q_title, q_dept, q_sem, q_sub, q_batch, q_date, quiz_type, q_timer, q_time_start, q_time_end, q_time_division, show_answer, fac_inserted, switch_limit, desc_time, quiz_status, quiz_started)
-        VALUES ('Python Basics Demo Quiz', 'IT', '6', 'Subject 6.1 for Demo', 'All', ?, '0', 30, ?, ?, '-', 1, 'F001', 3, 0, 1, 1)
+        VALUES ('Computer Networks MCQ', 'IT', '6', 'Subject 6.1 for Demo', 'All', ?, '0', 30, ?, ?, '-', 1, 'F001', 3, 0, 1, 1)
     """, (today, start_time, end_time))
     mcq_quiz_id = cursor.lastrowid
 
-    # Quiz 2: Mixed/Descriptive (quiz_type='1')
+    # Quiz 2: Mixed (MCQ + Descriptive) (quiz_type='1')
     cursor.execute("""
         INSERT INTO quiz_det (q_title, q_dept, q_sem, q_sub, q_batch, q_date, quiz_type, q_timer, q_time_start, q_time_end, q_time_division, show_answer, fac_inserted, switch_limit, desc_time, quiz_status, quiz_started)
-        VALUES ('Advanced DBMS Demo Exam', 'IT', '6', 'Subject 6.2 for Demo', 'All', ?, '1', 60, ?, ?, '-', 1, 'F001', 5, 30, 1, 1)
+        VALUES ('Operating Systems Mixed Test', 'IT', '6', 'Subject 6.2 for Demo', 'All', ?, '1', 60, ?, ?, '-', 1, 'F001', 5, 30, 1, 1)
+    """, (today, start_time, end_time))
+    mixed_quiz_id = cursor.lastrowid
+
+    # Quiz 3: Pure Descriptive (quiz_type='1')
+    cursor.execute("""
+        INSERT INTO quiz_det (q_title, q_dept, q_sem, q_sub, q_batch, q_date, quiz_type, q_timer, q_time_start, q_time_end, q_time_division, show_answer, fac_inserted, switch_limit, desc_time, quiz_status, quiz_started)
+        VALUES ('Software Engineering Theory', 'IT', '6', 'Subject 6.3 for Demo', 'All', ?, '1', 45, ?, ?, '-', 1, 'F001', 3, 45, 1, 1)
     """, (today, start_time, end_time))
     desc_quiz_id = cursor.lastrowid
 
     # 5. Add Questions
+    # Questions for MCQ Quiz
     mcq_questions = [
-        (1, 'Which data type is used to store multiple items in a single variable in Python?', 0, 'List', 'Integer', 'String', 'Boolean', 'option1', 'None', 2, mcq_quiz_id),
-        (2, 'What is the correct syntax to output "Hello World" in Python?', 0, 'p("Hello World")', 'print("Hello World")', 'echo("Hello World")', 'console.log("Hello World")', 'option2', 'None', 2, mcq_quiz_id),
+        (1, 'Which layer of OSI model is responsible for routing?', 0, 'Physical', 'Data Link', 'Network', 'Transport', 'option3', 'None', 2, mcq_quiz_id),
+        (2, 'What does HTTP stand for?', 0, 'HyperText Transfer Protocol', 'HyperText Transmission Protocol', 'Hyperlink Text Transfer Protocol', 'None', 'option1', 'None', 2, mcq_quiz_id),
+        (3, 'Which protocol is used for sending emails?', 0, 'HTTP', 'FTP', 'SMTP', 'POP3', 'option3', 'None', 2, mcq_quiz_id),
     ]
     cursor.executemany("""
         INSERT INTO questions (q_no, question, ans_type, opt1, opt2, opt3, opt4, correct_opt, q_time, points, quiz_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, mcq_questions)
 
+    # Questions for Mixed Quiz
+    mixed_questions = [
+        (1, 'What is a Deadlock in OS?', 0, 'A state where processes wait for each other', 'A state of fast execution', 'A memory management technique', 'None', 'option1', 'None', 5, mixed_quiz_id),
+        (2, 'Explain the process lifecycle in Operating Systems.', 2, '', '', '', '', '', 'None', 10, mixed_quiz_id),
+        (3, 'Which scheduling algorithm uses time slices?', 0, 'FCFS', 'SJF', 'Round Robin', 'Priority', 'option3', 'None', 5, mixed_quiz_id),
+    ]
+    cursor.executemany("""
+        INSERT INTO questions (q_no, question, ans_type, opt1, opt2, opt3, opt4, correct_opt, q_time, points, quiz_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, mixed_questions)
+
+    # Questions for Descriptive Quiz
     desc_questions = [
-        (1, 'Explain the 3-tier architecture of DBMS with a neat diagram.', 2, '', '', '', '', '', 'None', 10, desc_quiz_id),
-        (2, 'What are ACID properties in a database transaction?', 2, '', '', '', '', '', 'None', 10, desc_quiz_id),
+        (1, 'Compare Waterfall and Agile models of Software Development.', 2, '', '', '', '', '', 'None', 20, desc_quiz_id),
+        (2, 'Explain the importance of Testing in Software Engineering.', 2, '', '', '', '', '', 'None', 20, desc_quiz_id),
     ]
     cursor.executemany("""
         INSERT INTO questions (q_no, question, ans_type, opt1, opt2, opt3, opt4, correct_opt, q_time, points, quiz_id)
@@ -162,7 +141,7 @@ def setup_demo_data():
 
     conn.commit()
     conn.close()
-    print("DEMO SETUP SUCCESSFUL!")
+    print("DEMO SETUP SUCCESSFUL - Mixed Tests Added!")
 
 if __name__ == '__main__':
     setup_demo_data()
