@@ -1,0 +1,8 @@
+Flask
+flask-mysqldb
+python-dotenv
+requests
+pytz
+pyjwt
+flask-mail
+mysqlclient
