@@ -81,9 +81,10 @@ def setup_demo_data():
     cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_det'")
     cursor.execute("DELETE FROM sqlite_sequence WHERE name='questions'")
     
-    today = datetime.now().strftime('%Y-%m-%d')
-    start_time = "00:00"
-    end_time = "23:59"
+    now_dt = datetime.now()
+    today = now_dt.strftime('%Y-%m-%d')
+    start_time = (now_dt - timedelta(minutes=30)).strftime('%H:%M')
+    end_time = (now_dt + timedelta(hours=5)).strftime('%H:%M')
     
     # Quiz 1: Pure MCQ (quiz_type='0')
     cursor.execute("""

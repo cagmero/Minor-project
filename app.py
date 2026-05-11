@@ -621,7 +621,7 @@ def dashboard():
         chartData_json = json.dumps({"user_scores": user_scores})
         print("Scores for Student:", user_scores)
 
-        cursor.execute('SELECT quiz_type,quiz_id,q_title,q_sub,q_date,q_time_start,q_time_end,quiz_started FROM quiz_det WHERE q_date >= %s AND q_dept = %s AND q_sem = %s AND q_batch="All" OR  q_batch=%s ORDER BY quiz_id DESC', (dt,dept,sem,batch))
+        cursor.execute('SELECT quiz_type,quiz_id,q_title,q_sub,q_date,q_time_start,q_time_end,quiz_started FROM quiz_det WHERE q_date >= %s AND q_dept = %s AND q_sem = %s AND (q_batch="All" OR q_batch=%s) ORDER BY quiz_id DESC', (dt,dept,sem,batch))
         records = cursor.fetchall()
         cursor.close()
         # #print(len(records))

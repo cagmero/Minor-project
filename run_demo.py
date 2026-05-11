@@ -17,12 +17,9 @@ def run_demo():
     pip_path = os.path.join(venv_path, 'bin', 'pip')
     subprocess.run([pip_path, 'install', 'Flask', 'python-dotenv', 'pytz', 'pyjwt', 'flask-mail', 'requests', 'xlrd', 'xlwt', 'openpyxl', 'xlsxwriter'], check=True)
     
-    # 3. Run migration if DB doesn't exist
-    if not os.path.exists('test_wise.db'):
-        print("Migrating MySQL data to SQLite...")
-        subprocess.run([os.path.join(venv_path, 'bin', 'python3'), 'migrate_to_sqlite.py'], check=True)
-    else:
-        print("SQLite database already exists.")
+    # 3. Always run demo setup to ensure fresh data/dates
+    print("Refreshing demo data (credentials, quizzes, dates)...")
+    subprocess.run([os.path.join(venv_path, 'bin', 'python3'), 'demo_setup.py'], check=True)
 
     # 4. Start the app
     print("\n" + "="*50)
